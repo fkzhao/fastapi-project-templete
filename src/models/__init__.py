@@ -14,7 +14,7 @@ def import_all_models():
 
 import_all_models()
 
-# Create all tables for subclasses of BaseModel
-Base.metadata.create_all(bind=engine)
+# Tables will be created by Alembic migrations
+# Base.metadata.create_all(bind=engine)
 
-__all__ = ["Product", "User"]
+__all__ = ["Product", "User", "Base", "BaseModel"]
