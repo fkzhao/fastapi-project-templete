@@ -41,7 +41,7 @@ src/
 ### 3. **Schema Hierarchy**
 
 ```python
-# base.py - Base classes
+# auth.py - Base classes
 ├── BaseResponse              # Base response class
 ├── TimestampSchema          # Timestamp Mixin
 ├── MessageResponse          # Simple message response
@@ -261,7 +261,7 @@ class UserCreateRequest(BaseModel):
 
 ### 3. Add Common Query Parameters
 ```python
-# schemas/base.py
+# schemas/auth.py
 class QueryParams(BaseModel):
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=10, ge=1, le=100)
