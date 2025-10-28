@@ -33,9 +33,17 @@ dist/
 
 # SQLite database
 *.db
+*.sqlite
+*.sqlite3
+
+# Data directory (keep structure, ignore files)
+data/*
+!data/README.md
+!data/.gitkeep
 
 # Logs
 *.log
+logs/
 
 # Uvicorn reload
 .reload/
