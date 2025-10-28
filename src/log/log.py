@@ -7,7 +7,7 @@ from typing import Any, Dict, Set
 
 from loguru import logger as loguru_logger
 
-from settings import settings
+from src.settings import settings
 
 
 LOGGING_RESERVED_FIELDS: Set[str] = {
@@ -35,9 +35,9 @@ LOGGING_RESERVED_FIELDS: Set[str] = {
 
 
 class InterceptHandler(logging.Handler):
-    """将标准 logging 日志转发到 loguru."""
+    """Forward standard logging logs to loguru."""
 
-    def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover - 直接调用
+    def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover - direct call
         try:
             level = loguru_logger.level(record.levelname).name
         except ValueError:
@@ -49,180 +49,204 @@ class InterceptHandler(logging.Handler):
             depth += 1
 
         extra = {
-            key: value
-            for key, value in record.__dict__.items()
-            if key not in LOGGING_RESERVED_FIELDS
+            k: v
+            for k, v in record.__dict__.items()
+            if k not in LOGGING_RESERVED_FIELDS and not k.startswith("_")
         }
 
-        loguru_logger.bind(**extra).opt(
-            depth=depth, exception=record.exc_info
-        ).log(level, record.getMessage())
+        loguru_logger.opt(depth=depth, exception=record.exc_info).bind(**extra).log(
+            level, record.getMessage()
+        )
 
 
-class LoggingConfig:
-    """统一日志配置管理"""
+class LogConfig:
+    """Unified log configuration management"""
 
-    def __init__(self) -> None:
-        self.debug = settings.DEBUG
-        self.level = "DEBUG" if self.debug else "INFO"
-        self.log_dir = settings.LOGS_ROOT if hasattr(settings, "LOGS_ROOT") else "logs"
-        self.service_name = getattr(settings, "PROJECT_NAME", "application")
-        self.environment = getattr(settings, "APP_ENV", "development")
-        self.ensure_log_dir()
+    def __init__(self):
+        self.log_level = settings.log_level
+        self.log_dir = settings.log_dir
+        self.log_rotation = settings.log_rotation
+        self.log_retention = settings.log_retention
+        self.log_format = settings.log_format
 
     def ensure_log_dir(self):
-        """确保日志目录存在"""
+        """Ensure log directory exists"""
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir, exist_ok=True)
 
     @staticmethod
-    def _json_default(value: Any) -> Any:
-        """JSON序列化的默认处理逻辑"""
-        if isinstance(value, (datetime, date)):
-            return value.isoformat()
-        if isinstance(value, (set, tuple)):
-            return list(value)
-        if isinstance(value, bytes):
-            return value.decode("utf-8", errors="replace")
-        return str(value)
+    def default_json_handler(obj: Any) -> Any:
+        """Default handling logic for JSON serialization"""
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        if isinstance(obj, Exception):
+            return {"error": str(obj), "type": type(obj).__name__}
+        if hasattr(obj, "__dict__"):
+            return obj.__dict__
+        return str(obj)
 
-    def _build_log_entry(self, record: Dict[str, Any]) -> Dict[str, Any]:
-        """构建标准化的日志结构"""
-        extra: Dict[str, Any] = dict(record.get("extra", {}))
-        # 避免递归引用
-        extra.pop("serialized", None)
-
-        log_entry: Dict[str, Any] = {
-            "timestamp": record["time"].astimezone().isoformat(),
-            "level": record["level"].name,
-            "message": record["message"],
-            "logger": record["name"],
-            "module": record["module"],
-            "function": record["function"],
-            "line": record["line"],
-            "process": record["process"].id,
-            "thread": record["thread"].id,
-            "service": self.service_name,
-            "environment": self.environment,
+    @staticmethod
+    def build_log_structure(record: Dict[str, Any]) -> Dict[str, Any]:
+        """Build standardized log structure"""
+        # Avoid recursive references
+        safe_record = {
+            k: v
+            for k, v in record.items()
+            if k
+            not in {
+                "extra",
+                "file",
+                "function",
+                "level",
+                "line",
+                "module",
+                "name",
+                "process",
+                "thread",
+                "time",
+            }
         }
 
-        # 支持上下文透传，兼容 request_id / user_id 等字段
-        context = extra.pop("context", None)
-        if isinstance(context, dict):
-            extra.update(context)
+        # Support context pass-through, compatible with fields like request_id / user_id
+        extra = record.get("extra", {})
 
-        log_entry.update(extra)
-
-        if record.get("exception"):
-            exception = record["exception"]
-            log_entry["exception"] = {
-                "type": exception.type.__name__ if exception.type else None,
-                "value": str(exception.value),
-                "traceback": exception.traceback,
-            }
-
+        log_entry = {
+            "timestamp": record["time"].timestamp(),
+            "level": record["level"].name,
+            "message": record["message"],
+            "module": record.get("name", ""),
+            "function": record.get("function", ""),
+            "line": record.get("line", 0),
+            **safe_record,
+            **extra,
+        }
         return log_entry
 
-    def _serialize_record(self, record: Dict[str, Any]) -> str:
-        """序列化日志记录为 JSON 字符串"""
-        log_entry = self._build_log_entry(record)
-        return json.dumps(
-            log_entry,
-            ensure_ascii=False,
-            default=self._json_default,
-            sort_keys=self.debug,
-            separators=(",", ":") if not self.debug else (",", ": "),
-        )
+    @classmethod
+    def serialize_log(cls, message: str) -> str:
+        """Serialize log record as JSON string"""
+        try:
+            record = json.loads(message)
+            log_entry = cls.build_log_structure(record)
+            return json.dumps(log_entry, default=cls.default_json_handler, ensure_ascii=False)
+        except Exception:
+            return message
 
-    def _patch_record(self, record: Dict[str, Any]) -> None:
-        """为每条日志记录附加序列化后的内容"""
-        record.setdefault("extra", {})
-        record["extra"]["serialized"] = self._serialize_record(record)
+    @staticmethod
+    def log_patcher(record: Dict[str, Any]) -> None:
+        """Attach serialized content to each log record"""
+        if isinstance(record["message"], str):
+            record["extra"]["serialized"] = record["message"]
 
-    def setup_logger(self):
-        """配置日志输出"""
-        # 清除默认处理器
+    def setup_logging(self):
+        """Configure log output"""
+        # Clear default handlers
         loguru_logger.remove()
 
-        # 拦截标准 logging，统一输出格式
-        intercept_handler = InterceptHandler()
-        logging.basicConfig(handlers=[intercept_handler], level=0, force=True)
+        # Intercept standard logging, unify output format
+        logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 
-        for logger_name in (
+        seen = set()
+        for name in [
+            *logging.root.manager.loggerDict.keys(),
+            "gunicorn",
+            "gunicorn.access",
+            "gunicorn.error",
             "uvicorn",
-            "uvicorn.error",
             "uvicorn.access",
-            "fastapi",
-        ):
-            standard_logger = logging.getLogger(logger_name)
-            standard_logger.handlers = [intercept_handler]
-            standard_logger.propagate = False
+            "uvicorn.error",
+        ]:
+            if name not in seen:
+                seen.add(name.split(".")[0])
+                logging.getLogger(name).handlers = [InterceptHandler()]
 
-        # 启用统一 patcher，确保所有日志输出为 JSON 结构
-        loguru_logger.configure(patcher=self._patch_record)
+        # Enable unified patcher to ensure all log output is JSON structure
+        loguru_logger.configure(patcher=self.log_patcher)
 
-        # 控制台输出（JSON 流）
+        # Console output (JSON stream)
+        if self.log_format == "json":
+            loguru_logger.add(
+                sys.stdout,
+                level=self.log_level,
+                format="{message}",
+                serialize=True,
+                enqueue=True,
+                colorize=False,
+            )
+        else:
+            loguru_logger.add(
+                sys.stdout,
+                level=self.log_level,
+                format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+                enqueue=True,
+                colorize=True,
+            )
+
+        # File output - all level logs
         loguru_logger.add(
-            sink=sys.stdout,
-            level=self.level,
-            format="{extra[serialized]}",
-            colorize=False,
-            backtrace=True,
-            diagnose=self.debug,
-            enqueue=True,
-        )
-
-        # 文件输出 - 所有级别日志
-        loguru_logger.add(
-            sink=f"{self.log_dir}/backend_{{time:YYYY-MM-DD}}.log",
-            level="DEBUG",
-            format="{extra[serialized]}",
-            rotation="100 MB",
-            retention="30 days",
+            os.path.join(self.log_dir, "app.log"),
+            level=self.log_level,
+            format="{message}",
+            rotation=self.log_rotation,
+            retention=self.log_retention,
             compression="zip",
-            encoding="utf-8",
-            backtrace=True,
-            diagnose=self.debug,
+            serialize=True,
             enqueue=True,
+            encoding="utf-8",
         )
 
-        # 错误日志单独文件
+        # Error logs in separate file
         loguru_logger.add(
-            sink=f"{self.log_dir}/backend_error_{{time:YYYY-MM-DD}}.log",
+            os.path.join(self.log_dir, "error.log"),
             level="ERROR",
-            format="{extra[serialized]}",
-            rotation="50 MB",
-            retention="90 days",
+            format="{message}",
+            rotation=self.log_rotation,
+            retention=self.log_retention,
             compression="zip",
-            encoding="utf-8",
-            backtrace=True,
-            diagnose=self.debug,
+            serialize=True,
             enqueue=True,
+            encoding="utf-8",
         )
 
-        # 关键错误日志（CRITICAL级别）
+        # Critical error logs (CRITICAL level)
         loguru_logger.add(
-            sink=f"{self.log_dir}/backend_critical_{{time:YYYY-MM-DD}}.log",
+            os.path.join(self.log_dir, "critical.log"),
             level="CRITICAL",
-            format="{extra[serialized]}",
-            rotation="10 MB",
-            retention="180 days",
+            format="{message}",
+            rotation=self.log_rotation,
+            retention=self.log_retention,
             compression="zip",
-            encoding="utf-8",
-            backtrace=True,
-            diagnose=self.debug,
+            serialize=True,
             enqueue=True,
+            encoding="utf-8",
         )
 
-        # 为所有日志添加默认上下文
-        # 注意：这里重新绑定会创建新的logger实例
-
-        # 记录日志系统启动
-        loguru_logger.bind(event="logger_startup").info("日志系统已启动")
-
+        # Add default context to all logs
+        # Note: rebinding here will create a new logger instance
         return loguru_logger
 
 
-# 全局日志配置实例
-logging_config = LoggingConfig()
-logger = logging_config.setup_logger()
+# Global log configuration instance
+log_config = LogConfig()
+log_config.ensure_log_dir()
+logger = log_config.setup_logging()
+
+
+def get_logger(name: str = None, **context) -> Any:
+    """
+    Get a logger with context.
+
+    Args:
+        name: Logger name (optional)
+        **context: Additional context to bind to logger
+
+    Returns:
+        Logger instance with bound context
+    """
+    if context:
+        return logger.bind(**context)
+    return logger
+
+
+__all__ = ["logger", "get_logger", "LogConfig"]
+

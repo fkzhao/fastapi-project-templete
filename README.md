@@ -10,6 +10,7 @@ A production-ready FastAPI project template with modern Python development pract
 - **Pydantic Schemas**: Request/response validation and serialization
 - **Admin Panel**: SQLAdmin integration for easy data management
 - **Multiple Database Support**: Configure multiple database connections
+- **Comprehensive Middleware**: CORS, security headers, rate limiting, logging, audit trails
 - **Docker Ready**: Complete Docker and docker-compose setup
 - **Type Hints**: Full type annotation throughout the codebase
 - **Testing**: Pytest configuration and examples
@@ -90,9 +91,11 @@ See [DOCKER_README.md](DOCKER_README.md) for detailed Docker instructions.
 
 ## 📚 Documentation
 
+- [Middleware Guide](docs/MIDDLEWARE.md) - Complete middleware documentation
 - [Alembic Migrations](ALEMBIC_README.md) - Database migration guide
 - [Schemas Documentation](SCHEMAS_README.md) - Pydantic schemas guide
 - [Docker Documentation](DOCKER_README.md) - Docker deployment guide
+- [API Reference](docs/API.md) - Complete API documentation
 
 ## 🎯 API Endpoints
 
