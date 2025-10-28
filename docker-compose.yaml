@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # FastAPI application
+  fastapi-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL_DEFAULT=sqlite:///./database.db
+      - DATABASE_URL_ANALYTICS=sqlite:///./analytics.db
+      - PYTHONPATH=/app
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - app-data:/app
+    restart: unless-stopped
+    networks:
+      - fastapi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL database (optional, uncomment if needed)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: fastapi-postgres
+  #   environment:
+  #     - POSTGRES_USER=fastapi
+  #     - POSTGRES_PASSWORD=fastapi123
+  #     - POSTGRES_DB=fastapi_db
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - fastapi-network
+  #   restart: unless-stopped
+
+  # Redis cache (optional, uncomment if needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: fastapi-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - fastapi-network
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+
+  # Nginx reverse proxy (optional, uncomment if needed)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: fastapi-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - fastapi-app
+  #   networks:
+  #     - fastapi-network
+  #   restart: unless-stopped
+
+networks:
+  fastapi-network:
+    driver: bridge
+
+volumes:
+  app-data:
+  # postgres-data:
+  # redis-data:
+

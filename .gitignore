@@ -1,0 +1,42 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Test and coverage
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Distribution
+build/
+dist/
+*.egg-info/
+
+# SQLite database
+*.db
+
+# Logs
+*.log
+
+# Uvicorn reload
+.reload/
+
