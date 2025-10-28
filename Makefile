@@ -1,4 +1,4 @@
-.PHONY: help build build-prod up down restart logs shell test clean prune
+.PHONY: help build build-prod up down restart logs shell test clean prune migrate migrate-create migrate-downgrade migrate-history
 
 # Default target
 help:
@@ -16,6 +16,13 @@ help:
 	@echo "prune         - Clean up Docker system"
 	@echo "ps            - List running containers"
 	@echo "health        - Check application health"
+	@echo ""
+	@echo "Database Migration Commands"
+	@echo "==========================="
+	@echo "migrate       - Apply all pending migrations"
+	@echo "migrate-create - Create a new migration"
+	@echo "migrate-down  - Rollback last migration"
+	@echo "migrate-history - Show migration history"
 
 # Build development image
 build:
@@ -86,4 +93,25 @@ deploy-prod: build-prod
 		--name fastapi-app-prod \
 		--restart unless-stopped \
 		fastapi-app:production
+
+# Database migration commands
+migrate:
+	@echo "Applying migrations..."
+	alembic upgrade head
+
+migrate-create:
+	@read -p "Enter migration message: " msg; \
+	alembic revision --autogenerate -m "$$msg"
+
+migrate-down:
+	@echo "Rolling back last migration..."
+	alembic downgrade -1
+
+migrate-history:
+	@echo "Migration history:"
+	alembic history --verbose
+
+migrate-current:
+	@echo "Current migration:"
+	alembic current
 

@@ -5,7 +5,8 @@ A production-ready FastAPI project template with modern Python development pract
 ## 🚀 Features
 
 - **FastAPI Framework**: High-performance async web framework
-- **SQLAlchemy ORM**: Database models with automatic migration support
+- **SQLAlchemy ORM**: Database models with Alembic migrations
+- **Alembic Migrations**: Full database schema versioning and migration support
 - **Pydantic Schemas**: Request/response validation and serialization
 - **Admin Panel**: SQLAdmin integration for easy data management
 - **Multiple Database Support**: Configure multiple database connections
@@ -50,7 +51,16 @@ A production-ready FastAPI project template with modern Python development pract
    uvicorn src.main:app --reload
    ```
 
-3. **Access the API**:
+3. **Run database migrations**:
+   ```bash
+   # Create initial migration
+   alembic revision --autogenerate -m "Initial migration"
+   
+   # Apply migrations
+   alembic upgrade head
+   ```
+
+4. **Access the API**:
    - API Documentation: http://localhost:8000/docs
    - Admin Panel: http://localhost:8000/admin
    - Health Check: http://localhost:8000/health
@@ -80,6 +90,7 @@ See [DOCKER_README.md](DOCKER_README.md) for detailed Docker instructions.
 
 ## 📚 Documentation
 
+- [Alembic Migrations](ALEMBIC_README.md) - Database migration guide
 - [Schemas Documentation](SCHEMAS_README.md) - Pydantic schemas guide
 - [Docker Documentation](DOCKER_README.md) - Docker deployment guide
 
@@ -150,6 +161,7 @@ Main dependencies:
 - FastAPI - Web framework
 - Uvicorn - ASGI server
 - SQLAlchemy - ORM
+- Alembic - Database migrations
 - Pydantic - Data validation
 - SQLAdmin - Admin panel
 - pytest - Testing framework
