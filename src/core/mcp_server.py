@@ -90,6 +90,20 @@ class MCPSSEServer:
                 }
             )
 
+        @self.router.post(self.config.mcp_endpoint)
+        async def mcp_sse_post_not_allowed():
+            """Return helpful error for POST requests to SSE endpoint"""
+            raise HTTPException(
+                status_code=405,
+                detail={
+                    "error": "Method Not Allowed",
+                    "message": "MCP SSE endpoint only accepts GET requests for Server-Sent Events connections",
+                    "correct_method": "GET",
+                    "endpoint": self.config.mcp_endpoint,
+                    "usage": f"Use EventSource or fetch with GET method to connect to {self.config.mcp_endpoint}"
+                }
+            )
+
         @self.router.get(f"{self.config.mcp_endpoint}/info")
         async def mcp_info():
             """Get MCP server information"""
