@@ -47,4 +47,5 @@ logs/
 
 # Uvicorn reload
 .reload/
+STATUS.md
 
