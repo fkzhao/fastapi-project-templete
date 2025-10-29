@@ -3,7 +3,8 @@ Middleware Configuration
 Centralized configuration for all middleware with environment variable support
 """
 from typing import List
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class MiddlewareConfig(BaseSettings):

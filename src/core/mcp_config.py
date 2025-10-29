@@ -1,7 +1,8 @@
 """
 MCP (Model Context Protocol) SSE Server Configuration
 """
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 from typing import Optional
 
 
