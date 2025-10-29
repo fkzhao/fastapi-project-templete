@@ -12,7 +12,7 @@ from fastapi import APIRouter, Request, HTTPException, Header
 from sse_starlette.sse import EventSourceResponse
 from pydantic import BaseModel
 
-from src.core.mcp_config import get_mcp_config
+from core.mcp_config import get_mcp_config
 
 logger = logging.getLogger(__name__)
 

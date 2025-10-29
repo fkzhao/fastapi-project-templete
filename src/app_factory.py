@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 
-from src.admin import init_admin
-from src.router import user, product
-from src.core.app import init_middleware
-from src.core.mcp_server import init_mcp_server
+from admin import init_admin
+from router import user, product
+from core.app import init_middleware
+from core.mcp_server import init_mcp_server
 
 
 def create_app() -> FastAPI:
