@@ -11,6 +11,7 @@ A production-ready FastAPI project template with modern Python development pract
 - **Admin Panel**: SQLAdmin integration for easy data management
 - **Multiple Database Support**: Configure multiple database connections
 - **Comprehensive Middleware**: CORS, security headers, rate limiting, logging, audit trails
+- **MCP SSE Server**: Model Context Protocol server with Server-Sent Events support
 - **Docker Ready**: Complete Docker and docker-compose setup
 - **Type Hints**: Full type annotation throughout the codebase
 - **Testing**: Pytest configuration and examples
@@ -91,6 +92,8 @@ See [DOCKER_README.md](DOCKER_README.md) for detailed Docker instructions.
 
 ## 📚 Documentation
 
+- [MCP SSE Server](docs/MCP_SSE_SERVER.md) - Model Context Protocol with SSE support
+- [Middleware Configuration](docs/MIDDLEWARE_CONFIG.md) - Configure middleware via environment variables
 - [Middleware Guide](docs/MIDDLEWARE.md) - Complete middleware documentation
 - [Alembic Migrations](ALEMBIC_README.md) - Database migration guide
 - [Schemas Documentation](SCHEMAS_README.md) - Pydantic schemas guide

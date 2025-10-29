@@ -1,19 +1,9 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from src.admin import init_admin
 from src.router import user, product
-from src.core.middleware import (
-    AuditLogMiddleware,
-    RequestLoggingMiddleware,
-    RequestIDMiddleware,
-    RateLimitMiddleware,
-    SecurityHeadersMiddleware,
-    ProcessTimeMiddleware,
-    get_cors_config,
-)
+from src.core.app import init_middleware
+from src.core.mcp_server import init_mcp_server
 
 
 def create_app() -> FastAPI:
@@ -27,48 +17,16 @@ def create_app() -> FastAPI:
     )
 
     # ============ Middleware Configuration ============
-    # Note: Middleware is executed in REVERSE order (last added = first executed)
-    # So we add them in reverse order of desired execution
+    # All middleware is configured via environment variables or default values
+    # See src/core/middleware_config.py for configuration options
+    # See src/core/app.py for middleware initialization logic
+    init_middleware(app)
 
-    # 8. Trusted Host - Validate host header (uncomment in production)
-    # app.add_middleware(
-    #     TrustedHostMiddleware,
-    #     allowed_hosts=["localhost", "127.0.0.1", "*.yourdomain.com"]
-    # )
-
-    # 7. GZip Compression - Compress responses (last to compress final response)
-    app.add_middleware(GZipMiddleware, minimum_size=1000)
-
-    # 6. Rate Limiting - Limit requests per client (optional)
-    # Uncomment to enable rate limiting
-    # app.add_middleware(
-    #     RateLimitMiddleware,
-    #     requests_per_minute=60,
-    #     requests_per_hour=1000
-    # )
-
-    # 5. Audit Log - Log API operations for audit trail
-    app.add_middleware(
-        AuditLogMiddleware,
-        methods=["POST", "PUT", "DELETE", "PATCH"],
-        exclude_paths=["/health", "/docs", "/redoc", "/openapi.json"]
-    )
-
-    # 4. Request Logging - Log all requests and responses
-    app.add_middleware(RequestLoggingMiddleware)
-
-    # 3. Process Time - Measure request processing time
-    app.add_middleware(ProcessTimeMiddleware)
-
-    # 2. Request ID - Add unique ID to each request
-    app.add_middleware(RequestIDMiddleware)
-
-    # 1. Security Headers - Add security-related headers (first to process)
-    app.add_middleware(SecurityHeadersMiddleware)
-
-    # 0. CORS - Enable Cross-Origin Resource Sharing (must be first)
-    cors_config = get_cors_config()
-    app.add_middleware(CORSMiddleware, **cors_config)
+    # ============ MCP SSE Server ============
+    # Model Context Protocol Server-Sent Events server
+    # Configure via MCP_* environment variables
+    # See src/core/mcp_config.py for configuration options
+    init_mcp_server(app)
 
     # ============ Admin Panel ============
     init_admin(app)
