@@ -7,7 +7,7 @@ from typing import Any, Dict, Set
 
 from loguru import logger as loguru_logger
 
-from src.settings import settings
+from settings import settings
 
 
 LOGGING_RESERVED_FIELDS: Set[str] = {

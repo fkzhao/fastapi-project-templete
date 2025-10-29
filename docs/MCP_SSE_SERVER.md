@@ -18,7 +18,7 @@ MCP_ENDPOINT=/mcp/sse
 ### 2. Start the Application
 
 ```bash
-uvicorn src.main:app --reload
+uvicorn main:app --reload
 ```
 
 ### 3. Test the Connection
@@ -255,7 +255,7 @@ curl http://localhost:8000/mcp/sse/tools
 ### Register a Tool
 
 ```python
-from src.core.mcp_server import get_mcp_server, MCPTool
+from core.mcp_server import get_mcp_server, MCPTool
 
 mcp_server = get_mcp_server()
 
@@ -283,7 +283,7 @@ mcp_server.register_tool(MCPTool(
 ### Register a Resource
 
 ```python
-from src.core.mcp_server import get_mcp_server, MCPResource
+from core.mcp_server import get_mcp_server, MCPResource
 
 mcp_server = get_mcp_server()
 
@@ -299,7 +299,7 @@ mcp_server.register_resource(MCPResource(
 ### Register a Prompt
 
 ```python
-from src.core.mcp_server import get_mcp_server, MCPPrompt
+from core.mcp_server import get_mcp_server, MCPPrompt
 
 mcp_server = get_mcp_server()
 

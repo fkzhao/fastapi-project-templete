@@ -11,9 +11,9 @@ from alembic import context
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import your models here
-from src.models.base import Base
-from src.models.user import User
-from src.models.product import Product
+from models.base import Base
+from models.user import User
+from models.product import Product
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

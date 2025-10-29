@@ -50,7 +50,7 @@ A production-ready FastAPI project template with modern Python development pract
 
 2. **Run the application**:
    ```bash
-   uvicorn src.main:app --reload
+   uvicorn main:app --reload
    ```
 
 3. **Run database migrations**:

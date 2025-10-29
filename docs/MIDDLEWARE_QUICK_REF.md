@@ -14,7 +14,7 @@
 
 3. **Start application**:
    ```bash
-   uvicorn src.main:app --reload
+   uvicorn main:app --reload
    ```
 
 ## ⚡ Quick Configuration Examples

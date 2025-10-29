@@ -80,7 +80,7 @@ class LogContext:
     def get_logger(name: str = None):
         """Get logger with context"""
         # Lazy import to avoid circular imports
-        from src.log.log import get_logger
+        from log.log import get_logger
 
         # Get all context information
         ctx = request_context.get() or {}

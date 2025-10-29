@@ -95,9 +95,9 @@ export DATABASE_URL="postgresql://user:pass@localhost/dbname"
 
 All models are imported in `alembic/env.py`:
 ```python
-from src.models.base import Base
-from src.models.user import User
-from src.models.product import Product
+from models.base import Base
+from models.user import User
+from models.product import Product
 
 target_metadata = Base.metadata
 ```
@@ -120,7 +120,7 @@ class Order(BaseModel):
 
 2. Import in `alembic/env.py`:
 ```python
-from src.models.order import Order
+from models.order import Order
 ```
 
 3. Generate migration:
@@ -254,7 +254,7 @@ Add to your deployment script:
 alembic upgrade head
 
 # Start application
-uvicorn src.main:app --host 0.0.0.0 --port 8000
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ### 5. Use Transaction Per Migration
@@ -303,7 +303,7 @@ COPY alembic.ini ./
 COPY alembic ./alembic
 
 # Run migrations on container start
-CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000
+CMD alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ### Docker Compose
@@ -314,7 +314,7 @@ services:
     build: .
     command: >
       sh -c "alembic upgrade head &&
-             uvicorn src.main:app --host 0.0.0.0 --port 8000"
+             uvicorn main:app --host 0.0.0.0 --port 8000"
 ```
 
 ### Separate Migration Service

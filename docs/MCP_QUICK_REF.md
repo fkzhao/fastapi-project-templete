@@ -111,7 +111,7 @@ curl -N -H "Authorization: Bearer your-key" \
 
 ### Register Tool
 ```python
-from src.core.mcp_server import get_mcp_server, MCPTool
+from core.mcp_server import get_mcp_server, MCPTool
 
 mcp_server = get_mcp_server()
 mcp_server.register_tool(MCPTool(
@@ -123,7 +123,7 @@ mcp_server.register_tool(MCPTool(
 
 ### Register Resource
 ```python
-from src.core.mcp_server import MCPResource
+from core.mcp_server import MCPResource
 
 mcp_server.register_resource(MCPResource(
     uri="api://my/resource",

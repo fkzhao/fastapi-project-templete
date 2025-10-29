@@ -4,7 +4,7 @@ from fastapi.responses import Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 
-from src.log.context import LogContext
+from log.context import LogContext
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):

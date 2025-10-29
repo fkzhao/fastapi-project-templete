@@ -9,8 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-from src.core.middleware_config import get_middleware_config
-from src.core.middleware import (
+from core.middleware_config import get_middleware_config
+from core.middleware import (
     AuditLogMiddleware,
     RequestLoggingMiddleware,
     RequestIDMiddleware,

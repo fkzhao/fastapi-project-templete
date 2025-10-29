@@ -2,11 +2,11 @@ from pathlib import Path
 import sys
 
 try:
-    from app_factory import create_app
+    from src.app_factory import create_app
 except ModuleNotFoundError:  # pragma: no cover - fallback when executed directly
     current_dir = Path(__file__).resolve().parent
     sys.path.insert(0, str(current_dir.parent))
-    from app_factory import create_app
+    from src.app_factory import create_app
 
 
 app = create_app()
