@@ -91,18 +91,24 @@ class MCPSSEServer:
             )
 
         @self.router.post(self.config.mcp_endpoint)
-        async def mcp_sse_post_not_allowed():
-            """Return helpful error for POST requests to SSE endpoint"""
-            raise HTTPException(
-                status_code=405,
-                detail={
-                    "error": "Method Not Allowed",
-                    "message": "MCP SSE endpoint only accepts GET requests for Server-Sent Events connections",
-                    "correct_method": "GET",
-                    "endpoint": self.config.mcp_endpoint,
-                    "usage": f"Use EventSource or fetch with GET method to connect to {self.config.mcp_endpoint}"
-                }
-            )
+        async def mcp_message_handler(
+            request: Request,
+            authorization: Optional[str] = Header(None)
+        ):
+            """Handle MCP protocol messages via POST"""
+
+            # Authentication check
+            if self.config.mcp_require_auth:
+                if not authorization or not self._verify_auth(authorization):
+                    raise HTTPException(status_code=401, detail="Unauthorized")
+
+            try:
+                message = await request.json()
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid JSON: {str(e)}")
+
+            # Process MCP message
+            return await self._handle_mcp_message(message)
 
         @self.router.get(f"{self.config.mcp_endpoint}/info")
         async def mcp_info():
@@ -132,6 +138,164 @@ class MCPSSEServer:
         # Support both "Bearer <token>" and direct token
         token = authorization.replace("Bearer ", "").strip()
         return token == self.config.mcp_api_key
+
+    async def _handle_mcp_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle MCP protocol messages.
+
+        Args:
+            message: MCP protocol message
+
+        Returns:
+            MCP protocol response
+        """
+        method = message.get("method")
+        params = message.get("params", {})
+        msg_id = message.get("id")
+
+        try:
+            if method == "initialize":
+                result = {
+                    "protocolVersion": "2024-11-05",
+                    "serverInfo": self.get_server_info().model_dump(),
+                    "capabilities": self.get_server_info().capabilities
+                }
+
+            elif method == "tools/list":
+                result = {
+                    "tools": [tool.model_dump() for tool in self.tools.values()]
+                }
+
+            elif method == "tools/call":
+                tool_name = params.get("name")
+                tool_args = params.get("arguments", {})
+
+                if tool_name not in self.tools:
+                    raise ValueError(f"Tool not found: {tool_name}")
+
+                # Execute tool (override this method in production)
+                result = await self._execute_tool(tool_name, tool_args)
+
+            elif method == "resources/list":
+                result = {
+                    "resources": [resource.model_dump() for resource in self.resources.values()]
+                }
+
+            elif method == "resources/read":
+                resource_uri = params.get("uri")
+
+                if resource_uri not in self.resources:
+                    raise ValueError(f"Resource not found: {resource_uri}")
+
+                # Read resource (override this method in production)
+                result = await self._read_resource(resource_uri)
+
+            elif method == "prompts/list":
+                result = {
+                    "prompts": [prompt.model_dump() for prompt in self.prompts.values()]
+                }
+
+            elif method == "prompts/get":
+                prompt_name = params.get("name")
+                prompt_args = params.get("arguments", {})
+
+                if prompt_name not in self.prompts:
+                    raise ValueError(f"Prompt not found: {prompt_name}")
+
+                # Get prompt (override this method in production)
+                result = await self._get_prompt(prompt_name, prompt_args)
+
+            else:
+                raise ValueError(f"Unknown method: {method}")
+
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": result
+            }
+
+        except Exception as e:
+            logger.error(f"Error handling MCP message: {e}")
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "error": {
+                    "code": -32603,
+                    "message": str(e)
+                }
+            }
+
+    async def _execute_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute a tool (override this in production).
+
+        Args:
+            tool_name: Name of the tool to execute
+            arguments: Tool arguments
+
+        Returns:
+            Tool execution result
+        """
+        # This is a placeholder implementation
+        # Override this method to implement actual tool execution
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Tool {tool_name} executed with arguments: {arguments}"
+                }
+            ]
+        }
+
+    async def _read_resource(self, uri: str) -> Dict[str, Any]:
+        """
+        Read a resource (override this in production).
+
+        Args:
+            uri: Resource URI
+
+        Returns:
+            Resource content
+        """
+        # This is a placeholder implementation
+        # Override this method to implement actual resource reading
+        resource = self.resources.get(uri)
+        return {
+            "contents": [
+                {
+                    "uri": uri,
+                    "mimeType": resource.mime_type if resource else "text/plain",
+                    "text": f"Content of resource: {uri}"
+                }
+            ]
+        }
+
+    async def _get_prompt(self, prompt_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Get a prompt (override this in production).
+
+        Args:
+            prompt_name: Name of the prompt
+            arguments: Prompt arguments
+
+        Returns:
+            Prompt content
+        """
+        # This is a placeholder implementation
+        # Override this method to implement actual prompt generation
+        prompt = self.prompts.get(prompt_name)
+        return {
+            "description": prompt.description if prompt else "",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": {
+                        "type": "text",
+                        "text": f"Prompt {prompt_name} with arguments: {arguments}"
+                    }
+                }
+            ]
+        }
 
     async def _event_generator(self, request: Request):
         """

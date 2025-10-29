@@ -40,7 +40,7 @@ class MCPConfig(BaseSettings):
 
 # Global MCP configuration instance
 mcp_config = MCPConfig()
-
+mcp_config.mcp_enabled = True
 
 def get_mcp_config() -> MCPConfig:
     """Get the global MCP configuration instance"""

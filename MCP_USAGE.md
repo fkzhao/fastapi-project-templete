@@ -1,15 +1,11 @@
 # MCP SSE Server - Quick Usage Guide
 
-## 🔴 Common Error: 405 Method Not Allowed
+## 🎯 MCP Protocol Support
 
-If you see this error:
-```
-127.0.0.1:55033 - "POST /mcp/sse HTTP/1.1" 405
-```
+The MCP SSE server supports two communication methods:
 
-**Problem**: You're using POST method, but MCP SSE requires GET.
-
-**Solution**: Use GET method for Server-Sent Events connection.
+1. **GET** - For Server-Sent Events (SSE) streaming
+2. **POST** - For MCP protocol messages (JSON-RPC)
 
 ## ✅ Correct Usage
 
@@ -20,31 +16,22 @@ In `.env` file:
 MCP_ENABLED=true
 ```
 
-### 2. Connect with GET Method
+### 2. SSE Streaming (GET Method)
+
+For real-time event streaming:
 
 #### Using cURL
 ```bash
-# Correct - use GET
+# Connect to SSE stream
 curl -N http://localhost:8000/mcp/sse
 
 # With authentication
 curl -N -H "Authorization: Bearer your-api-key" http://localhost:8000/mcp/sse
 ```
 
-#### Using Python
-```python
-import httpx
-
-# Correct - streaming GET request
-with httpx.stream("GET", "http://localhost:8000/mcp/sse") as response:
-    for line in response.iter_lines():
-        if line.startswith("data:"):
-            print(line)
-```
-
 #### Using JavaScript
 ```javascript
-// Correct - EventSource uses GET automatically
+// EventSource uses GET automatically
 const eventSource = new EventSource('http://localhost:8000/mcp/sse');
 
 eventSource.addEventListener('server_info', (e) => {
@@ -56,16 +43,169 @@ eventSource.addEventListener('ping', (e) => {
 });
 ```
 
-### 3. Available Endpoints
+### 3. MCP Protocol Messages (POST Method)
+
+For MCP JSON-RPC protocol messages:
+
+#### Initialize
+```bash
+curl -X POST http://localhost:8000/mcp/sse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {}
+  }'
+```
+
+#### List Tools
+```bash
+curl -X POST http://localhost:8000/mcp/sse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/list",
+    "params": {}
+  }'
+```
+
+#### Call Tool
+```bash
+curl -X POST http://localhost:8000/mcp/sse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {
+      "name": "get_user_info",
+      "arguments": {
+        "user_id": 123
+      }
+    }
+  }'
+```
+
+#### List Resources
+```bash
+curl -X POST http://localhost:8000/mcp/sse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 4,
+    "method": "resources/list",
+    "params": {}
+  }'
+```
+
+#### Read Resource
+```bash
+curl -X POST http://localhost:8000/mcp/sse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 5,
+    "method": "resources/read",
+    "params": {
+      "uri": "api://users/list"
+    }
+  }'
+```
+
+#### List Prompts
+```bash
+curl -X POST http://localhost:8000/mcp/sse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 6,
+    "method": "prompts/list",
+    "params": {}
+  }'
+```
+
+#### Get Prompt
+```bash
+curl -X POST http://localhost:8000/mcp/sse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 7,
+    "method": "prompts/get",
+    "params": {
+      "name": "summarize_user",
+      "arguments": {
+        "user_id": 123
+      }
+    }
+  }'
+```
+
+### 4. Python Client Example
+
+```python
+import httpx
+import json
+
+# For POST requests (MCP protocol)
+def call_mcp_method(method, params=None):
+    response = httpx.post(
+        "http://localhost:8000/mcp/sse",
+        json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": method,
+            "params": params or {}
+        }
+    )
+    return response.json()
+
+# Initialize
+result = call_mcp_method("initialize")
+print("Server info:", result)
+
+# List tools
+tools = call_mcp_method("tools/list")
+print("Available tools:", tools)
+
+# Call a tool
+tool_result = call_mcp_method("tools/call", {
+    "name": "get_user_info",
+    "arguments": {"user_id": 123}
+})
+print("Tool result:", tool_result)
+
+# For SSE streaming (GET)
+with httpx.stream("GET", "http://localhost:8000/mcp/sse") as response:
+    for line in response.iter_lines():
+        if line.startswith("data:"):
+            print(line)
+```
+
+### 5. Available Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/mcp/sse` | SSE stream connection ✅ |
+| POST | `/mcp/sse` | MCP protocol messages (JSON-RPC) ✅ |
 | GET | `/mcp/sse/info` | Server information |
 | GET | `/mcp/sse/tools` | List available tools |
 | GET | `/mcp/sse/resources` | List available resources |
 | GET | `/mcp/sse/prompts` | List available prompts |
-| POST | `/mcp/sse` | ❌ Not allowed - returns error |
+
+## 📋 Supported MCP Methods
+
+| Method | Description | Params |
+|--------|-------------|--------|
+| `initialize` | Initialize MCP session | None |
+| `tools/list` | List available tools | None |
+| `tools/call` | Execute a tool | `name`, `arguments` |
+| `resources/list` | List available resources | None |
+| `resources/read` | Read a resource | `uri` |
+| `prompts/list` | List available prompts | None |
+| `prompts/get` | Get a prompt | `name`, `arguments` |
 
 ## 🔧 Configuration
 
