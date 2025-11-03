@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 
 
 project_root = Path(__file__).resolve().parent.parent
+print("=============================")
+print(f"Project Root: {project_root}")
+print("=============================")
 
 # Load .env file before running tests
 env_file = project_root / ".env"
