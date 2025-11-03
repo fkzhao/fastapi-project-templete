@@ -1,9 +1,8 @@
 from sqlalchemy import Column, DateTime, func
-from sqlalchemy.orm import declarative_base
 
-Base = declarative_base()
+from core.database import EngineBase
 
-class BaseModel(Base):
+class BaseModel(EngineBase):
     __abstract__ = True
     # Common fields will be defined in subclasses, followed by timestamp fields
     create_time = Column(DateTime, default=func.now(), nullable=False)

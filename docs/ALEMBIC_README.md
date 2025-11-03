@@ -297,10 +297,11 @@ def run_migrations_online():
 ### Dockerfile Update
 
 Add migration step:
+
 ```dockerfile
 # Copy alembic configuration
-COPY alembic.ini ./
-COPY alembic ./alembic
+COPY ../alembic.ini ./
+COPY ../alembic ./alembic
 
 # Run migrations on container start
 CMD alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000

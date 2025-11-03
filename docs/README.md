@@ -28,9 +28,9 @@ This directory contains project documentation and API specifications.
 
 Main documentation files in project root:
 - [README.md](../README.md) - Project overview and quick start
-- [ALEMBIC_README.md](../ALEMBIC_README.md) - Database migrations guide
-- [SCHEMAS_README.md](../SCHEMAS_README.md) - Pydantic schemas guide
-- [DOCKER_README.md](../DOCKER_README.md) - Docker deployment guide
+- [ALEMBIC_README.md](ALEMBIC_README.md) - Database migrations guide
+- [SCHEMAS_README.md](SCHEMAS_README.md) - Pydantic schemas guide
+- [DOCKER_README.md](DOCKER_README.md) - Docker deployment guide
 
 ## 📝 Auto-Generated Docs
 

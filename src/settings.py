@@ -5,6 +5,12 @@ Configuration management using environment variables
 import os
 from pathlib import Path
 
+def get_required_env(key: str) -> str:
+    """Get required environment variable or raise error"""
+    value = os.getenv(key)
+    if not value:
+        raise ValueError(f"{key} environment variable is required")
+    return value
 
 class Settings:
     """Application settings with environment variable support"""
@@ -45,7 +51,23 @@ class Settings:
         "http://localhost:3000,http://localhost:8000"
     )
 
-    def __init__(self):
+    # Redis Configuration
+    redis_mode: str = os.getenv("REDIS_MODE", "standalone")  # "standalone" or "cluster"
+    redis_host: str = os.getenv("REDIS_HOST", "localhost")
+    redis_port: int = int(os.getenv("REDIS_PORT", "6379"))
+    redis_password: str = os.getenv("REDIS_PASSWORD", "")
+    redis_db: int = int(os.getenv("REDIS_DB", "0"))
+    redis_cluster_nodes: str = os.getenv("REDIS_CLUSTER_NODES", "")  # Comma-separated list: "host1:port1,host2:port2"
+    redis_max_connections: int = int(os.getenv("REDIS_MAX_CONNECTIONS", "50"))
+    redis_socket_timeout: int = int(os.getenv("REDIS_SOCKET_TIMEOUT", "5"))
+    redis_socket_connect_timeout: int = int(os.getenv("REDIS_SOCKET_CONNECT_TIMEOUT", "5"))
+    redis_decode_responses: bool = os.getenv("REDIS_DECODE_RESPONSES", "true").lower() == "true"
+    redis_ssl: bool = os.getenv("REDIS_SSL", "false").lower() == "true"
+    redis_ssl_cert_reqs: str = os.getenv("REDIS_SSL_CERT_REQS", "required")  # "required", "optional", "none"
+    redis_key_prefix: str = os.getenv("REDIS_KEY_PREFIX", "mcp")
+    redis_default_ttl: int = int(os.getenv("REDIS_DEFAULT_TTL", "3600"))
+
+def __init__(self):
         # Ensure log directory exists
         log_path = Path(self.log_dir)
         if not log_path.exists():

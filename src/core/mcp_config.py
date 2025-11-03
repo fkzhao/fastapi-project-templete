@@ -2,7 +2,7 @@
 MCP (Model Context Protocol) SSE Server Configuration
 """
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
@@ -31,11 +31,13 @@ class MCPConfig(BaseSettings):
     mcp_enable_resources: bool = Field(default=True, description="Enable MCP resources")
     mcp_enable_prompts: bool = Field(default=True, description="Enable MCP prompts")
 
-    class Config:
-        env_prefix = "MCP_"
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_prefix="MCP_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"  # Ignore extra fields to avoid validation errors
+    )
 
 
 # Global MCP configuration instance

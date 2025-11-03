@@ -44,7 +44,7 @@ def discover_model_views():
     return model_views
 
 
-def init_admin(app):
+def init_admin_panel(app):
     """Create and register the SQLAdmin dashboard views."""
     admin = Admin(app, engine, authentication_backend=MyAuthBackend("123"))
 

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Query
 from datetime import datetime
+from services.user import UserService
 
 from schemas.user import (
     UserCreateRequest,
@@ -10,7 +11,7 @@ from schemas.user import (
 from schemas.base import MessageResponse, APIResponse
 
 router = APIRouter()
-
+user_service = UserService()
 
 @router.post(
     "/",
@@ -47,20 +48,16 @@ async def get_user(user_id: int):
     """
     Retrieve a user by their ID.
     """
-    # TODO: Implement actual database lookup
     if user_id <= 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with ID {user_id} not found"
         )
-
+    user = user_service.get_by_id(user_id)
+    print(user)
     return UserResponse(
         id=user_id,
-        name="John Doe",
-        nick_name="johndoe",
-        email="john@example.com",
-        create_time=datetime.now(),
-        update_time=datetime.now()
+        name=user.name,
     )
 
 

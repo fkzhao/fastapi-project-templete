@@ -88,16 +88,16 @@ A production-ready FastAPI project template with modern Python development pract
    ./build.sh
    ```
 
-See [DOCKER_README.md](DOCKER_README.md) for detailed Docker instructions.
+See [DOCKER_README.md](docs/DOCKER_README.md) for detailed Docker instructions.
 
 ## 📚 Documentation
 
 - [MCP SSE Server](docs/MCP_SSE_SERVER.md) - Model Context Protocol with SSE support
 - [Middleware Configuration](docs/MIDDLEWARE_CONFIG.md) - Configure middleware via environment variables
 - [Middleware Guide](docs/MIDDLEWARE.md) - Complete middleware documentation
-- [Alembic Migrations](ALEMBIC_README.md) - Database migration guide
-- [Schemas Documentation](SCHEMAS_README.md) - Pydantic schemas guide
-- [Docker Documentation](DOCKER_README.md) - Docker deployment guide
+- [Alembic Migrations](docs/ALEMBIC_README.md) - Database migration guide
+- [Schemas Documentation](docs/SCHEMAS_README.md) - Pydantic schemas guide
+- [Docker Documentation](docs/DOCKER_README.md) - Docker deployment guide
 - [API Reference](docs/API.md) - Complete API documentation
 
 ## 🎯 API Endpoints

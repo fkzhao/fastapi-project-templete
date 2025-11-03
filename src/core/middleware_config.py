@@ -4,7 +4,7 @@ Centralized configuration for all middleware with environment variable support
 """
 from typing import List
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class MiddlewareConfig(BaseSettings):
@@ -65,20 +65,13 @@ class MiddlewareConfig(BaseSettings):
         description="Allowed host headers"
     )
 
-    class Config:
-        env_prefix = "MIDDLEWARE_"
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-
-        # Support parsing list from comma-separated string
-        @classmethod
-        def parse_env_var(cls, field_name: str, raw_val: str):
-            if field_name in ['cors_origins', 'cors_methods', 'cors_headers',
-                            'audit_log_methods', 'audit_log_exclude_paths',
-                            'trusted_host_allowed']:
-                return [item.strip() for item in raw_val.split(',')]
-            return raw_val
+    model_config = SettingsConfigDict(
+        env_prefix="MIDDLEWARE_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"  # Ignore extra fields to avoid validation errors
+    )
 
 
 # Global middleware configuration instance

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
-from admin import init_admin
-from router import user, product
+from admin import init_admin_panel
+from router import register_routers
 from core.app import init_middleware
 from core.mcp_server import init_mcp_server
 
@@ -29,7 +29,7 @@ def create_app() -> FastAPI:
     init_mcp_server(app)
 
     # ============ Admin Panel ============
-    init_admin(app)
+    init_admin_panel(app)
 
     # ============ Route Handlers ============
     @app.get("/")
@@ -52,8 +52,8 @@ def create_app() -> FastAPI:
         }
 
     # ============ API Routers ============
-    app.include_router(user.router, prefix="/user", tags=["User Operations"])
-    app.include_router(product.router, prefix="/product", tags=["Product Operations"])
+    # Auto-discover and register all routers from router module
+    register_routers(app)
 
     return app
 

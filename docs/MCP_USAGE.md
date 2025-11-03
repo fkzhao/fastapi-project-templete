@@ -253,5 +253,5 @@ SSE is a server push technology that allows a server to push data to clients ove
 
 ## 🔗 More Information
 
-See full documentation: [docs/MCP_SSE_SERVER.md](./docs/MCP_SSE_SERVER.md)
+See full documentation: [docs/MCP_SSE_SERVER.md](MCP_SSE_SERVER.md)
 
